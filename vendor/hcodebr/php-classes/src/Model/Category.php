@@ -96,6 +96,29 @@ class Category extends Model
         }
     }
 
+    public function getProductsPage($page = 1, $itemsPerPage = 8)
+    {
+        $start = (($page - 1) * $itemsPerPage);
+
+        $sql = new Sql();
+
+        $results = $sql->select("SELECT SQL_CALC_FOUND_ROWS  * FROM tb_products as a INNER JOIN tb_productscategories as b ON a.idproduct = b.idproduct INNER JOIN tb_categories as c ON c.idcategory = b.idcategory WHERE c.idcategory = :idcategory LIMIT $start, $itemsPerPage;
+        ", [
+            ":idcategory" => $this->getidcategory()
+        ]);
+
+        $resultTotal = $sql->select("SELECT FOUND_ROWS() AS ntotal;");
+
+        // print_r($resultTotal[0]);
+        // exit;
+
+        return array(
+            "data" => Product::checkList($results),
+            "total" => (int) $resultTotal[0]["ntotal"],
+            "pages" => ceil($resultTotal[0]["ntotal"] / $itemsPerPage)
+        );
+    }
+
     public function addProduct(Product $product)
     {
         $sql = new Sql();
