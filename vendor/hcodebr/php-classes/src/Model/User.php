@@ -74,15 +74,6 @@ class User extends Model
     {
         $sql = new Sql();
 
-        /*
-        pdesperson
-        pdeslogin 
-        pdespassword
-        pdesemail
-        pnrphone
-        pinadmin
-        */
-
         $results = $sql->select("CALL sp_users_save(:desperson, :deslogin,:despassword,:desemail, :nrphone, :inadmin)", array(
             ":desperson" => $this->getdesperson(),
             ":deslogin" => $this->getdeslogin(),
@@ -104,6 +95,28 @@ class User extends Model
         ));
 
         $this->setData($results[0]);
+    }
+
+    public function update()
+    {
+        $sql = new Sql();
+        $results = $sql->select("CALL sp_usersupdate_save(:iduser, :desperson, :deslogin, :despassword, :desemail, :nrphone, :inadmin)", array(
+            ":iduser" => $this->getiduser(),
+            ":desperson" => utf8_decode($this->getdesperson()),
+            ":deslogin" => $this->getdeslogin(),
+            ":despassword" => User::getPasswordHash($this->getdespassword()),
+            ":desemail" => $this->getdesemail(),
+            ":nrphone" => $this->getnrphone(),
+            ":inadmin" => $this->getinadmin()
+        ));
+        $this->setData($results[0]);
+    }
+    public function delete()
+    {
+        $sql = new Sql();
+        $sql->query("CALL sp_users_delete(:iduser)", array(
+            ":iduser" => $this->getiduser()
+        ));
     }
 
     public static function getForgot($email)
