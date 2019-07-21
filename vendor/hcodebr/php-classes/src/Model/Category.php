@@ -109,9 +109,6 @@ class Category extends Model
 
         $resultTotal = $sql->select("SELECT FOUND_ROWS() AS ntotal;");
 
-        // print_r($resultTotal[0]);
-        // exit;
-
         return array(
             "data" => Product::checkList($results),
             "total" => (int) $resultTotal[0]["ntotal"],
