@@ -9,8 +9,8 @@
 
             <div class="col-sm-6">
                 <div class="shopping-item">
-                    <a href="/cart">Carrinho - <span class="cart-amunt">R$100</span> <i
-                            class="fa fa-shopping-cart"></i> <span class="product-count">5</span></a>
+                    <a href="/cart">Carrinho - <span class="cart-amunt">R$100</span> <i class="fa fa-shopping-cart"></i>
+                        <span class="product-count">5</span></a>
                 </div>
             </div>
         </div>
@@ -31,7 +31,7 @@
             <div class="navbar-collapse collapse">
                 <ul class="nav navbar-nav">
                     <li class="active"><a href="/">Home</a></li>
-                    <li><a href="#">Produtos</a></li>
+                    <li><a href="/products">Produtos</a></li>
                     <li><a href="/cart">Carrinho</a></li>
                 </ul>
             </div>
@@ -131,7 +131,7 @@
                             <div class="product-f-image">
                                 <img src=<?php echo htmlspecialchars( $value1["desphoto"], ENT_COMPAT, 'UTF-8', FALSE ); ?> alt="">
                                 <div class="product-hover">
-                                    <a href="#" class="add-to-cart-link"><i class="fa fa-shopping-cart"></i> Comprar</a>
+                                    <a href="/cart/<?php echo htmlspecialchars( $value1["idproduct"], ENT_COMPAT, 'UTF-8', FALSE ); ?>/add" class="add-to-cart-link"><i class="fa fa-shopping-cart"></i> Comprar</a>
                                     <a href="/products/<?php echo htmlspecialchars( $value1["desurl"], ENT_COMPAT, 'UTF-8', FALSE ); ?>" class="view-details-link"><i
                                             class="fa fa-link"></i>Ver Detalhes</a>
                                 </div>
