@@ -4,6 +4,9 @@ use \Hcode\Page;
 use \Hcode\Model\Product;
 use \Hcode\Model\Category;
 use \Hcode\Model\Cart;
+use \Hcode\Model\Address;
+use \Hcode\Model\User;
+use \Rain\Tpl\Exception;
 
 $app->get('/', function () {
 
@@ -77,7 +80,7 @@ $app->get("/cart/:idproduct/add", function ($idproduct) {
 
     $qtd = (isset($_GET["qtd"])) ? (int) $_GET["qtd"] : 1;
 
-    for($i=0;$i < $qtd; $i++) {
+    for ($i = 0; $i < $qtd; $i++) {
         $cart->addProduct($product);
     }
 
@@ -111,11 +114,54 @@ $app->get("/cart/:idproduct/remove", function ($idproduct) {
     exit;
 });
 
-$app->post("/cart/freight", function() {
+$app->post("/cart/freight", function () {
     $cart = Cart::getFromSession();
 
     $cart->setFreight($_POST["zipcode"]);
 
     header("Location: /cart");
+    exit;
+});
+
+$app->get("/checkout", function () {
+    User::verifyLogin(false);
+
+    $cart = Cart::getFromSession();
+
+    $address = new Address();
+
+    $page = new Page();
+
+    $page->setTpl("checkout", array(
+        ":cart" => $cart->getValues(),
+        ":address" => $address->getValues()
+    ));
+});
+
+$app->get("/login", function () {
+
+    $page = new Page();
+
+    $page->setTpl("login", array(
+        "error" => User::getError()
+    ));
+});
+
+$app->post("/login", function () {
+
+    try {
+        User::login($_POST["login"], $_POST["password"]);
+    } catch (\Exception $e) {
+        User::setError($e->getMessage());
+    }
+
+    header("Location: /checkout");
+    exit;
+});
+
+$app->get("/logout", function () {
+    User::logout();
+
+    header("Location: /login");
     exit;
 });
