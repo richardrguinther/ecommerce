@@ -1,12 +1,12 @@
 <?php
 
-use \Hcode\Page;
-use \Hcode\Model\Product;
-use \Hcode\Model\Category;
-use \Hcode\Model\Cart;
-use \Hcode\Model\Address;
-use \Hcode\Model\User;
-use \Rain\Tpl\Exception;
+use Hcode\Page;
+use Hcode\Model\Product;
+use Hcode\Model\Category;
+use Hcode\Model\Cart;
+use Hcode\Model\Address;
+use Hcode\Model\User;
+use Rain\Tpl\Exception;
 
 $app->get('/', function () {
 
@@ -133,8 +133,8 @@ $app->get("/checkout", function () {
     $page = new Page();
 
     $page->setTpl("checkout", array(
-        ":cart" => $cart->getValues(),
-        ":address" => $address->getValues()
+        "cart" => $cart->getValues(),
+        "address" => $address->getValues()
     ));
 });
 
@@ -143,7 +143,13 @@ $app->get("/login", function () {
     $page = new Page();
 
     $page->setTpl("login", array(
-        "error" => User::getError()
+        "error" => User::getError(),
+        "errorRegister" => User::getErrorRegister(),
+        "registerValues" => (isset($_SESSION["registerValues"])) ? $_SESSION['registerValues'] : [
+            'name' => "",
+            'email' => "",
+            'phone' => ""
+        ]
     ));
 });
 
@@ -163,5 +169,57 @@ $app->get("/logout", function () {
     User::logout();
 
     header("Location: /login");
+    exit;
+});
+
+$app->post("/register", function () {
+
+    $_SESSION["registerValues"] = $_POST;
+
+    if (!isset($_POST["name"]) || $_POST["name"] == "") {
+        User::setErrorRegister("Preencha o seu nome.");
+        header("Location: /login");
+        exit;
+    }
+
+    if (!isset($_POST["email"]) || $_POST["email"] == "") {
+        User::setErrorRegister("Preencha seu email.");
+        header("Location: /login");
+        exit;
+    }
+
+    if (!isset($_POST["password"]) || $_POST["password"] == "") {
+        User::setErrorRegister("Preencha sua senha.");
+        header("Location: /login");
+        exit;
+    }
+
+    $user = new User();
+
+    if ($user->checkLoginExists($_POST["email"]) === true) {
+        User::setErrorRegister("Este endereço de e-mail já foi usado.");
+        header("Location: /login");
+        exit;
+    }
+
+    $user->setData(array(
+        "inadmin" => 0,
+        "deslogin" => $_POST["email"],
+        "desperson" => $_POST["name"],
+        "desemail" => $_POST["email"],
+        "despassword" => $_POST["password"],
+        "phone" => $_POST["phone"]
+    ));
+
+
+    $user->save();
+
+    try {
+        User::login($_POST["email"], $_POST["password"]);
+    } catch (\Exception $e) {
+        User::setErrorRegister($e->getMessage());
+        header("Location: /login");
+    }
+    header("Location: /checkout");
     exit;
 });

@@ -1,6 +1,6 @@
 <?php
 
-use Hcode\Model\User;
+use \Hcode\Model\User;
 
 function formatPrice(float $vlprice)
 {

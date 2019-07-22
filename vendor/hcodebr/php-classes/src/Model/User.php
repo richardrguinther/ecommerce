@@ -26,28 +26,27 @@ class User extends Model
         return $user;
     }
 
-    public static function checkLogin($inadmin = false)
-    {
-        if (
-            !isset($_SESSION[User::SESSION])
-            ||
-            !$_SESSION[User::SESSION]
-            ||
-            !(int) $_SESSION[User::SESSION]["iduser"] > 0
-        ) {
-            //Não está logado
-            return false;
-        } else {
-
-            if ($inadmin === true && (bool) $_SESSION[User::SESSION]["inadmin"] === true) {
-                return true;
-            } else if ($inadmin === false) {
-                return true;
-            } else {
-                return false;
-            }
-        }
-    }
+    public static function checkLogin($inadmin = true)
+	{
+		if (
+			!isset($_SESSION[User::SESSION])
+			||
+			!$_SESSION[User::SESSION]
+			||
+			!(int)$_SESSION[User::SESSION]["iduser"] > 0
+		) {
+			//Não está logado
+			return false;
+		} else {
+			if ($inadmin === true && (bool)$_SESSION[User::SESSION]['inadmin'] === true) {
+				return true;
+			} else if ($inadmin === false) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+	}
 
     public static function login($login, $password)
     {
@@ -66,7 +65,7 @@ class User extends Model
         if (password_verify($password, $data["despassword"]) === true) {
             $user = new User();
 
-            $data["desperson"] = urf8_encode($data["desperson"]);
+            $data["deslogin"] = utf8_decode($data["deslogin"]);
 
             $user->setData($data);
 
@@ -79,14 +78,16 @@ class User extends Model
     }
 
     public static function verifyLogin($inadmin = true)
-    {
-        if (User::checkLogin($inadmin === true)) {
-            header("Location: /admin/login");
-            exit;
-        } else {
-            header("Location: /login");
-        }
-    }
+	{
+		if (!User::checkLogin($inadmin) === true) {
+			if ($inadmin) {
+                header("Location: /admin/login");
+			} else {
+                header("Location: /login");
+			}
+			exit;
+		}
+	}
 
     public static function logout()
     {
@@ -278,10 +279,35 @@ class User extends Model
         $_SESSION[User::ERROR_REGISTER] = $msg;
     }
 
+    public static function getErrorRegister()
+    {
+        $msg = (isset($_SESSION[User::ERROR_REGISTER])) ? $_SESSION[User::ERROR_REGISTER] : "";
+        User::clearErrorRegister();
+        return $msg;
+    }
+
+    public static function clearErrorRegister()
+    {
+        $_SESSION[User::ERROR_REGISTER] = NULL;
+    }
+
     public static function getPasswordHash($password)
     {
         return password_hash($password, PASSWORD_DEFAULT,[
             "cost" => 12
         ]);
+    }
+
+    public function checkLoginExists($login)
+    {
+        $query = "SELECT * FROM tb_users WHERE deslogin = :deslogin";
+
+        $sql = new Sql();
+
+        $results = $sql->select($query,[
+            ":deslogin" => $login
+        ]);
+
+        return(count($results) > 0);
     }
 }
