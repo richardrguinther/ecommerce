@@ -27,34 +27,44 @@ class User extends Model
     }
 
     public static function checkLogin($inadmin = true)
-	{
-		if (
-			!isset($_SESSION[User::SESSION])
-			||
-			!$_SESSION[User::SESSION]
-			||
-			!(int)$_SESSION[User::SESSION]["iduser"] > 0
-		) {
-			//Não está logado
-			return false;
-		} else {
-			if ($inadmin === true && (bool)$_SESSION[User::SESSION]['inadmin'] === true) {
-				return true;
-			} else if ($inadmin === false) {
-				return true;
-			} else {
-				return false;
-			}
-		}
-	}
+    {
+        if (
+            !isset($_SESSION[User::SESSION])
+            ||
+            !$_SESSION[User::SESSION]
+            ||
+            !(int) $_SESSION[User::SESSION]["iduser"] > 0
+        ) {
+            //Não está logado
+            return false;
+        } else {
+            if ($inadmin === true && (bool) $_SESSION[User::SESSION]['inadmin'] === true) {
+                return true;
+            } else if ($inadmin === false) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+    }
 
     public static function login($login, $password)
     {
         $sql = new Sql();
 
-        $results = $sql->select("SELECT * FROM tb_users WHERE deslogin = :LOGIN", array(
+        // $results = $sql->select("SELECT * FROM tb_users WHERE deslogin = :LOGIN", array(
+        //     ":LOGIN" => $login
+        // ));
+
+        $query = "SELECT * 
+        FROM tb_users as a
+        INNER JOIN tb_persons as b 
+        ON a.idperson = b.idperson
+        WHERE deslogin = :LOGIN;";
+
+        $results = $sql->select($query, [
             ":LOGIN" => $login
-        ));
+        ]);
 
         if (count($results) === 0) {
             throw new \Exception("Usuário inexistente ou senha inválida.");
@@ -78,16 +88,16 @@ class User extends Model
     }
 
     public static function verifyLogin($inadmin = true)
-	{
-		if (!User::checkLogin($inadmin) === true) {
-			if ($inadmin) {
+    {
+        if (!User::checkLogin($inadmin) === true) {
+            if ($inadmin) {
                 header("Location: /admin/login");
-			} else {
+            } else {
                 header("Location: /login");
-			}
-			exit;
-		}
-	}
+            }
+            exit;
+        }
+    }
 
     public static function logout()
     {
@@ -121,7 +131,7 @@ class User extends Model
     {
         $sql = new Sql();
 
-        $results = $sql->select("SELECT * FROM tb_users as a INNER JOIN tb_persons as b USING(idperson) WHERE a.iduser = :iduser", array(
+        $results = $sql->select("SELECT * FROM tb_users as a INNER JOIN tb_persons as b ON a.idperson = b.idperson WHERE a.iduser = :iduser;", array(
             ":iduser" => $iduser
         ));
 
@@ -129,7 +139,7 @@ class User extends Model
 
         $data["desperson"] = utf8_encode($data["desperson"]);
 
-        $this->setData($data[0]);
+        $this->setData($data);
     }
 
     public function update()
@@ -154,7 +164,7 @@ class User extends Model
         ));
     }
 
-    public static function getForgot($email)
+    public static function getForgot($email, $inadmin = true)
     {
         $sql = new Sql();
 
@@ -191,7 +201,11 @@ class User extends Model
 
                 $code = base64_encode($code1);
 
-                $link = "http://www.hcodecommerce.com.br/admin/forgot/reset?code=$code";
+                if ($inadmin === true) {
+                    $link = "http://www.hcodecommerce.com.br/admin/forgot/reset?code=$code";
+                } else {
+                    $link = "http://www.hcodecommerce.com.br/forgot/reset?code=$code";
+                }
 
                 $mailer = new Mailer($data["desemail"], $data["desperson"], "Redefinir a Senha", "forgot", array(
                     "name" => $data["desperson"],
@@ -219,8 +233,8 @@ class User extends Model
         );
 
         $query = "SELECT * FROM tb_userspasswordsrecoveries as a 
-        INNER JOIN tb_users as b USING(iduser) 
-        INNER JOIN tb_persons as c USING(idperson) 
+        INNER JOIN tb_users as b ON a.iduser = b.iduser
+        INNER JOIN tb_persons as c ON b.idperson = c.idperson 
         WHERE a.idrecovery = :idrecovery
         AND a.dtrecovery IS NULL 
         AND DATE_ADD(a.dtregister, INTERVAL 1 HOUR) >= NOW();";
@@ -293,7 +307,7 @@ class User extends Model
 
     public static function getPasswordHash($password)
     {
-        return password_hash($password, PASSWORD_DEFAULT,[
+        return password_hash($password, PASSWORD_DEFAULT, [
             "cost" => 12
         ]);
     }
@@ -304,10 +318,10 @@ class User extends Model
 
         $sql = new Sql();
 
-        $results = $sql->select($query,[
+        $results = $sql->select($query, [
             ":deslogin" => $login
         ]);
 
-        return(count($results) > 0);
+        return (count($results) > 0);
     }
 }
