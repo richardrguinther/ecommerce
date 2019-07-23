@@ -1,4 +1,4 @@
-<?php if(!class_exists('Rain\Tpl')){exit;}?><div class="site-branding-area">
+<?php if(!class_exists('Rain\Tpl')){exit;}?><!-- <div class="site-branding-area">
     <div class="container">
         <div class="row">
             <div class="col-sm-6">
@@ -15,7 +15,8 @@
             </div>
         </div>
     </div>
-</div> <!-- End site branding area -->
+</div> 
+End site branding area -->
 
 <div class="mainmenu-area">
     <div class="container">

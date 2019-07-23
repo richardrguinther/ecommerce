@@ -342,4 +342,32 @@ class User extends Model
 
         return (count($results) > 0);
     }
+
+    public function getOrders()
+    {
+        $sql = new Sql();
+
+        $query = "SELECT * 
+            FROM tb_orders AS a 
+            INNER JOIN tb_ordersstatus AS b 
+            ON a.idstatus = b.idstatus
+            INNER JOIN tb_carts AS c 
+            ON c.idcart = a.idcart
+            INNER JOIN tb_users AS d 
+            ON d.iduser = a.iduser
+            INNER JOIN tb_addresses AS e
+            ON a.idaddress = e.idaddress
+            INNER JOIN tb_persons AS f
+            ON f.idperson = d.idperson
+            WHERE a.iduser = :iduser
+            ";
+
+        $results = $sql->select($query, [
+            ":iduser" => $this->getiduser()
+        ]);
+
+        if (count($results) > 0) {
+            return $results;
+        }
+    }
 }
