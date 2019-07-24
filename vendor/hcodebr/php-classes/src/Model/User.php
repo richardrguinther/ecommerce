@@ -145,6 +145,9 @@ class User extends Model
     public function update()
     {
         $sql = new Sql();
+
+        //$query = 'CALL sp_usersupdate_save(:iduser, :desperson, :deslogin, :despassword, :desemail, :nrphone, :inadmin)';
+
         $results = $sql->select("CALL sp_usersupdate_save(:iduser, :desperson, :deslogin, :despassword, :desemail, :nrphone, :inadmin)", array(
             ":iduser" => $this->getiduser(),
             ":desperson" => utf8_decode($this->getdesperson()),
@@ -156,6 +159,7 @@ class User extends Model
         ));
         $this->setData($results[0]);
     }
+
     public function delete()
     {
         $sql = new Sql();
@@ -279,7 +283,7 @@ class User extends Model
     public static function getSuccess()
     {
         $msg = (isset($_SESSION[User::SUCCESS])) ? $_SESSION[User::SUCCESS] : "";
-        User::clearError();
+        User::clearSuccess();
         return $msg;
     }
 

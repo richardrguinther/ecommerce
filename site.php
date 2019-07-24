@@ -3,11 +3,8 @@
 use Hcode\Page;
 use Hcode\Model\Product;
 use Hcode\Model\Category;
+use Hcode\Model\User;
 use Rain\Tpl\Exception;
-
-require_once("site-carts.php");
-require_once("site-payments.php");
-require_once("site-users.php");
 
 $app->get('/', function () {
 
@@ -59,3 +56,4 @@ $app->get("/products/:desurl", function ($desurl) {
         "categories" => $product->getCategories()
     ]);
 });
+
