@@ -135,4 +135,51 @@ class Category extends Model
             ":idproduct" => $product->getidproduct()
         ));
     }
+
+    public static function getPage($page = 1, $itemsPerPage = 10)
+    {
+        $start = (($page - 1) * $itemsPerPage);
+
+        $sql = new Sql();
+
+        $query =    "SELECT SQL_CALC_FOUND_ROWS  * 
+                    FROM tb_categories 
+                    LIMIT $start, $itemsPerPage
+                    ";
+
+        $results = $sql->select($query);
+
+        $resultTotal = $sql->select("SELECT FOUND_ROWS() AS ntotal;");
+
+        return array(
+            "data" => $results,
+            "total" => (int) $resultTotal[0]["ntotal"],
+            "pages" => ceil($resultTotal[0]["ntotal"] / $itemsPerPage)
+        );
+    }
+
+    public static function getPageSearch($search, $page = 1, $itemsPerPage = 10)
+    {
+        $start = (($page - 1) * $itemsPerPage);
+
+        $sql = new Sql();
+
+        $query =    "SELECT SQL_CALC_FOUND_ROWS  * 
+                    FROM tb_categories as a 
+                    WHERE descategory LIKE :search 
+                    LIMIT $start, $itemsPerPage;
+                    ";
+
+        $results = $sql->select($query, [
+            ":search" => "%$search%"
+        ]);
+
+        $resultTotal = $sql->select("SELECT FOUND_ROWS() AS ntotal;");
+
+        return array(
+            "data" => $results,
+            "total" => (int) $resultTotal[0]["ntotal"],
+            "pages" => ceil($resultTotal[0]["ntotal"] / $itemsPerPage)
+        );
+    }
 }
