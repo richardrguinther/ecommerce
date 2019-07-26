@@ -30,6 +30,9 @@ $app->get("/admin/categories", function () {
         ));
     }
 
+    // print_r($pages);
+    // exit;
+
     $page = new PageAdmin();
 
     $page->setTpl("categories", array(

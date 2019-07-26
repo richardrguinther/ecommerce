@@ -16,7 +16,7 @@ class Product extends Model
 
     public static function checkList($list)
     {
-        foreach($list as &$row){
+        foreach ($list as &$row) {
             $p = new Product();
 
             $p->setData($row);
@@ -70,8 +70,6 @@ class Product extends Model
 
     public function setPhoto($file)
     {
-        // var_dump($file);
-        // exit;
 
         $extension = explode(".", $file["name"]);
         $extension = end($extension);
@@ -137,7 +135,7 @@ class Product extends Model
 
         $query = "SELECT * FROM tb_products WHERE desurl = :desurl";
 
-        $rows = $sql->select($query,array(
+        $rows = $sql->select($query, array(
             ":desurl" => $desurl
         ));
 
@@ -150,8 +148,92 @@ class Product extends Model
 
         $query = "SELECT * FROM tb_categories as a INNER JOIN tb_productscategories as b ON a.idcategory = b.idcategory WHERE b.idproduct = :idproduct";
 
-        return $sql->select($query,[
+        return $sql->select($query, [
             ":idproduct" => $this->getidproduct()
         ]);
+    }
+
+    public static function getPages($page, $limitPerPage = 10)
+    {
+        $start = (($page - 1) * $limitPerPage);
+
+        $sql = new Sql();
+
+        $query =    "SELECT SQL_CALC_FOUND_ROWS *
+                    FROM tb_products
+                    ORDER BY desproduct
+                    LIMIT $start, $limitPerPage;
+        ";
+
+        $queryTotal = "SELECT FOUND_ROWS() as ntotal";
+
+        $results = $sql->select($query);
+
+        $totalResults = $sql->select($queryTotal);
+
+        return array(
+            "data" => $results,
+            "total" => (int) $totalResults[0]["ntotal"],
+            "pages" => ceil($totalResults[0]["ntotal"] / $limitPerPage)
+        );
+    }
+
+    public static function getPagesSearch($search, $page, $limitPerPage = 10)
+    {
+        $sql = new Sql();
+
+        $start = (($page - 1) * $limitPerPage);
+
+        $query =    "SELECT SQL_CALC_FOUND_ROWS * 
+                    FROM tb_products
+                    WHERE desproduct LIKE :search
+                    ORDER BY desproduct
+                    LIMIT $start, $limitPerPage
+                    ";
+
+        $queryTotal = "SELECT FOUND_ROWS() AS ntotal";
+
+        $results = $sql->select($query, [
+            ":search" => "%$search%"
+        ]);
+
+        $totalResults = $sql->select($queryTotal);
+
+        return array(
+            "data" => $results,
+            "total" => (int) $totalResults[0]["ntotal"],
+            "pages" => ceil($totalResults[0]["ntotal"] / $limitPerPage)
+        );
+    }
+
+    public static function makePagination()
+    {
+ 
+        $page = (isset($_GET["page"])) ? $_GET["page"] : 1;
+
+        $search = (isset($_GET["search"])) ? $_GET["search"] : "";
+
+        if ($search === "" || $search === null) {
+            $pagination = Product::getPages($page);
+        } else {
+            $pagination = Product::getPagesSearch($search, $page);
+        }
+
+        $data = $pagination["data"];
+
+        $pages = [];
+
+        for ($x = 0; $x < $pagination["pages"]; $x++) {
+            array_push($pages, array(
+                "href" => "/admin/products?" . http_build_query([
+                    "page" => $x + 1,
+                    "search" => $search
+                ]),
+                "text" => $x + 1,
+                "data" => $data
+            ));
+        }
+
+        return $pages;
     }
 }

@@ -7,12 +7,18 @@ use \Hcode\Model\Product;
 $app->get("/admin/products", function () {
     User::verifyLogin();
 
-    $products = Product::listAll();
+    $page = (isset($_GET["page"])) ? $_GET["page"] : 1;
+
+    $search = (isset($_GET["search"])) ? $_GET["search"] : "";
+
+    $products = Product::makePagination();
 
     $page = new PageAdmin();
 
     $page->setTpl("products", [
-        "products" => $products
+        "products" => $products[0]["data"],
+        "search" => $search,
+        "pages" => $products
     ]);
 });
 
