@@ -52,10 +52,6 @@ class User extends Model
     {
         $sql = new Sql();
 
-        // $results = $sql->select("SELECT * FROM tb_users WHERE deslogin = :LOGIN", array(
-        //     ":LOGIN" => $login
-        // ));
-
         $query = "SELECT * 
         FROM tb_users as a
         INNER JOIN tb_persons as b 
@@ -67,7 +63,8 @@ class User extends Model
         ]);
 
         if (count($results) === 0) {
-            throw new \Exception("Usuário inexistente ou senha inválida.");
+            // throw new \Exception("Usuário inexistente ou senha inválida.");
+            User::setError("Usuário ou senha inválida.");
         }
 
         $data = $results[0];
@@ -83,7 +80,8 @@ class User extends Model
 
             return $user;
         } else {
-            throw new \Exception("Usuário inexistente ou senha inválida.");
+            // throw new \Exception("Usuário inexistente ou senha inválida.");
+            User::setError("Usuário ou senha inválida");
         }
     }
 
@@ -409,7 +407,7 @@ class User extends Model
         LIMIT $start, $itemsPerPage;
         ";
 
-        $results = $sql->select($query,[
+        $results = $sql->select($query, [
             ":search" => "%$search%"
         ]);
 

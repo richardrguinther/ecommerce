@@ -78,9 +78,28 @@ $app->get("/admin/orders/:idorder", function ($idorder) {
 $app->get("/admin/orders", function () {
     User::verifyLogin();
 
+    $page = (isset($_GET["page"])) ? $_GET["page"] : 1;
+
+    $search = (isset($_GET["search"])) ? $_GET["search"] : "";
+
+    $orders = Order::makePagination($search, $page);
+
+    // var_dump($orders);
+    // exit;
+
     $page = new PageAdmin();
 
-    $page->setTpl("orders", [
-        "orders" => Order::listAll()
-    ]);
+    if (count($orders) > 0) {
+        $page->setTpl("orders", [
+            "orders" => $orders[0]["data"],
+            "pages" => $orders,
+            "search" => $search
+        ]);
+    } else {
+        $page->setTpl("orders", [
+            "orders" => $orders,
+            "pages" => $orders,
+            "search" => $search
+        ]);
+    }
 });

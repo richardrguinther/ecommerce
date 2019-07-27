@@ -139,4 +139,106 @@ class Order extends Model
     {
         $_SESSION[Order::ERROR] = NULL;
     }
+
+    public static function getPages($page, $limitPerPage = 10)
+    {
+        $start = (($page - 1) * $limitPerPage);
+
+        $sql = new Sql();
+
+        $query =    "SELECT SQL_CALC_FOUND_ROWS *
+                    FROM tb_orders AS a
+                    INNER JOIN tb_carts AS b
+                    ON a.idcart = b.idcart
+                    INNER JOIN tb_users AS c
+                    ON a.iduser = c.iduser
+                    INNER JOIN tb_persons AS d
+                    ON d.idperson = c.idperson
+                    INNER JOIN tb_ordersstatus AS e
+                    ON a.idstatus = e.idstatus
+                    ORDER BY idorder DESC
+                    LIMIT $start,$limitPerPage;
+                    ";
+
+        $queryTotal = "SELECT FOUND_ROWS() as ntotal";
+
+        $results = $sql->select($query);
+
+        $totalResults = $sql->select($queryTotal);
+
+        return array(
+            "data" => $results,
+            "total" => (int) $totalResults[0]["ntotal"],
+            "pages" => ceil($totalResults[0]["ntotal"] / $limitPerPage)
+        );
+    }
+
+    public static function getPagesSearch($search, $page, $limitPerPage = 10)
+    {
+        $sql = new Sql();
+
+        $start = (($page - 1) * $limitPerPage);
+
+        $query =    "SELECT SQL_CALC_FOUND_ROWS *
+                    FROM tb_orders AS a
+                    INNER JOIN tb_carts AS b
+                    ON a.idcart = b.idcart
+                    INNER JOIN tb_users AS c
+                    ON a.iduser = c.iduser
+                    INNER JOIN tb_persons AS d
+                    ON d.idperson = c.idperson
+                    INNER JOIN tb_ordersstatus AS e
+                    ON a.idstatus = e.idstatus
+                    WHERE desperson LIKE :search
+                    OR deslogin LIKE :search
+                    OR desemail LIKE :search
+                    ORDER BY idorder DESC
+                    LIMIT $start,$limitPerPage;
+                    ";
+
+        $queryTotal = "SELECT FOUND_ROWS() AS ntotal";
+
+        $results = $sql->select($query, [
+            ":search" => "%$search%"
+        ]);
+
+        $totalResults = $sql->select($queryTotal);
+
+        return array(
+            "data" => $results,
+            "total" => (int) $totalResults[0]["ntotal"],
+            "pages" => ceil($totalResults[0]["ntotal"] / $limitPerPage)
+        );
+    }
+
+    public static function makePagination()
+    {
+
+        $page = (isset($_GET["page"])) ? $_GET["page"] : 1;
+
+        $search = (isset($_GET["search"])) ? $_GET["search"] : "";
+
+        if ($search === "" || $search === null) {
+            $pagination = Order::getPages($page);
+        } else {
+            $pagination = Order::getPagesSearch($search, $page);
+        }
+
+        $data = $pagination["data"];
+
+        $pages = [];
+
+        for ($x = 0; $x < $pagination["pages"]; $x++) {
+            array_push($pages, array(
+                "href" => "/admin/products?" . http_build_query([
+                    "page" => $x + 1,
+                    "search" => $search
+                ]),
+                "text" => $x + 1,
+                "data" => $data
+            ));
+        }
+
+        return $pages;
+    }
 }

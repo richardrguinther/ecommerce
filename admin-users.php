@@ -3,6 +3,61 @@
 use \Hcode\PageAdmin;
 use \Hcode\Model\User;
 
+
+$app->get("/admin/users/:iduser/delete", function ($iduser) {
+    User::verifyLogin();
+    $user = new User();
+    $user->get((int) $iduser);
+    $user->delete();
+    header("Location: /admin/users");
+    exit;
+});
+
+$app->get("/admin/users/:iduser/password", function ($iduser) {
+    User::verifyLogin();
+
+    $user = new User();
+
+    $user->get((int) $iduser);
+
+    $page = new PageAdmin();
+
+    $page->setTpl("users-password", [
+        "user" => $user->getValues(),
+        "msgError" => User::getError(),
+        "msgSuccess" => User::getSuccess()
+    ]);
+});
+
+$app->post("/admin/users/:iduser/password", function ($iduser) {
+    User::verifyLogin();
+
+    if (!isset($_POST["despassword"]) || $_POST["despassword"] === "") {
+        User::setError("Preencha a nova senha.");
+        header("Location: /admin/users/$iduser/password");
+    }
+
+    if (!isset($_POST["despassword-confirm"]) || $_POST["despassword-confirm"] === "") {
+        User::setError("Preencha a confirmação da nova senha.");
+        header("Location: /admin/users/$iduser/password");
+    }
+
+    if ($_POST["despassword"] !== $_POST["despassword-confirm"]) {
+        User::setError("As senhas são diferentes.");
+        header("Location: /admin/users/$iduser/password");
+    }
+
+    $user = new User();
+
+    $user->get((int) $iduser);
+
+    $user->setPassword(User::getPasswordHash($_POST["despassword"]));
+
+    User::setSuccess("Senha alterada com sucesso.");
+    header("Location: /admin/users/$iduser/password");
+    exit;
+});
+
 $app->get("/admin/users", function () {
     User::verifyLogin();
 
@@ -10,8 +65,8 @@ $app->get("/admin/users", function () {
 
     $p = (isset($_GET["page"])) ? (int) $_GET["page"] : 1;
 
-    if($search != "") {
-        $pagination = User::getPageSearch($search,$p);
+    if ($search != "") {
+        $pagination = User::getPageSearch($search, $p);
     } else {
         $pagination = User::getPage($p);
     }
@@ -21,10 +76,10 @@ $app->get("/admin/users", function () {
     for ($x = 0; $x < $pagination["pages"]; $x++) {
         array_push($pages, array(
             "href" => "/admin/users?" . http_build_query([
-                "page" => $x+1,
+                "page" => $x + 1,
                 "search" => $search
             ]),
-            "text" => $x+1
+            "text" => $x + 1
         ));
     }
 
@@ -44,16 +99,6 @@ $app->get("/admin/users/create", function () {
 
     $page->setTpl("users-create");
 });
-
-$app->get("/admin/users/:iduser/delete", function ($iduser) {
-    User::verifyLogin();
-    $user = new User();
-    $user->get((int) $iduser);
-    $user->delete();
-    header("Location: /admin/users");
-    exit;
-});
-
 
 $app->get("/admin/users/:iduser", function ($iduser) {
     User::verifyLogin();
